@@ -1,14 +1,14 @@
 var usuario;
 var password;
-var mensajeP;
+
 
 function login() {
 
     var validator = $("#formLogin").kendoValidator().data("kendoValidator"),
-    status = $(".status");
+        status = $(".status");
 
     if (validator.validate()) {
-
+                
         status.text("Hooray! Your tickets has been booked!")
             .removeClass("invalid")
             .addClass("valid");
@@ -16,63 +16,40 @@ function login() {
 
         usuario = $("#usuario").val();
         password = $("#password").val();
-
+debugger
         var loginUrl = 'http://190.144.16.114:8810/rest/Base/BaseIntegrity/Login/'+ usuario + '/' + password + '/582372082679954432';
-
-       // alert(loginUrl);
-
-        var dataSource = new kendo.data.DataSource({
-            transport: {
-                read:  {
-                    url: loginUrl,
-                    dataType: "json"
-                },
-                parameterMap: function(options, operation) {
-                    if (operation !== "read" && options.models) {
-                        return {models: kendo.stringify(options.models)};
-                    }
-                },
-				success: function (data) {
-				debugger
-                alert(data);
+        console.log("loginUrl "+ loginUrl);
+        
+        var objResponse ={};
+        var objEstado ={};
+        var objCargo = {};
+        
+        $.ajax({            
+            type: "GET",
+            url: loginUrl ,
+            contentType: "application/json",
+            beforeSend: function () {
+                $("#resultado").html("Procesando, espere por favor...");
             },
+            success: function(resp){
+                  
+                objCargo = resp.response.poccargo;
+                
+                if(objCargo==0){
+                    objResponse = resp.response.dslogin.dslogin.ttestado[0].pocestado;
+                }         
             },
-            batch: true,
-            pageSize: 20,
-            schema: {
-                data:"response.dslogin.dslogin.ttestado",
-                model: {
-                    fields: {
-                        pocestado: { type: "string" }}
-                }
+            error:function(e){                
+                alert("Error \n"+JSON.stringify(e))
             }
-        });
-	
-        var hola = dataSource.fetch(function(){
-            var data = this.data();
-            console.log(data.length);
-            alert(data[0].pocestado);
-            debugger;
-            return data;
-
-        });
-
-
-
+        }).done(function() { //use this
+            afterAjax(objCargo,objResponse);
+        });          
     } else {
         status.text("Oops! There is invalid data in the form.")
             .removeClass("valid")
             .addClass("invalid");
     }
-
-
-}
-function setMensaje(msj){
-    mensajeP = msj;
-}
-
-function getMensaje() {
-    return mensajeP
 }
 
 function onLoad(){
@@ -81,6 +58,9 @@ function onLoad(){
 	
     presionaEnter();
 }
+/*
+ *  Permite que los datos del fomulario sean enviando cuando el usuario oprime la tecla "Enter"
+ */
 
 function presionaEnter() {
     document.addEventListener('keyup', function(e) {
@@ -92,4 +72,12 @@ function presionaEnter() {
         }
     }, false);
 }
+
+function afterAjax(objCargo,objResponse){    
+    if(objCargo == 0){
+        alert("Usuario  no registrado en el sistema")
+    }
+    else
+        alert("Aqui debo llamar al index")
+   }
 
