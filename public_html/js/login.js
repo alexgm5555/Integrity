@@ -1,56 +1,8 @@
+//sessionStorage.clear();
+
 var usuario;
 var password;
 
-
-function login() {
-
-    var validator = $("#formLogin").kendoValidator().data("kendoValidator"),
-        status = $(".status");
-
-    if (validator.validate()) {
-                
-        status.text("Hooray! Your tickets has been booked!")
-            .removeClass("invalid")
-            .addClass("valid");
-
-
-        usuario = $("#usuario").val();
-        password = $("#password").val();
-debugger
-        var loginUrl = 'http://190.144.16.114:8810/rest/Base/BaseIntegrity/Login/'+ usuario + '/' + password + '/582372082679954432';
-        console.log("loginUrl "+ loginUrl);
-        
-        var objResponse ={};
-        var objEstado ={};
-        var objCargo = {};
-        
-        $.ajax({            
-            type: "GET",
-            url: loginUrl ,
-            contentType: "application/json",
-            beforeSend: function () {
-                $("#resultado").html("Procesando, espere por favor...");
-            },
-            success: function(resp){
-                  
-                objCargo = resp.response.poccargo;
-                
-                if(objCargo==0){
-                    objResponse = resp.response.dslogin.dslogin.ttestado[0].pocestado;
-                }         
-            },
-            error:function(e){                
-                alert("Error \n"+JSON.stringify(e))
-            }
-        }).done(function() { //use this
-            afterAjax(objCargo,objResponse);
-        });          
-    } else {
-        status.text("Oops! There is invalid data in the form.")
-            .removeClass("valid")
-            .addClass("invalid");
-    }
-}
 
 function onLoad(){
     $("#btnLogin").kendoButton({
@@ -58,10 +10,52 @@ function onLoad(){
 	
     presionaEnter();
 }
+
+/*
+ * Metodo que consume el servicio de para el Login
+ * 
+ */
+function login() {
+    
+    var validator = $("#formLogin").kendoValidator().data("kendoValidator"),
+        status = $(".status");
+
+    if (validator.validate()) {
+        
+        status.text("Hooray! Your tickets has been booked!")
+                .removeClass("invalid")
+                .addClass("valid");
+        
+        
+        usuario = $("#usuario").val();
+        password = $("#password").val();
+              
+        var loginUrl = 'http://190.144.16.114:8810/rest/Base/BaseIntegrity/Login/'+ usuario + '/' + password + '/582372082679954432';        
+        debugger
+        jQuery.get(loginUrl,{
+        },function(resultado){            
+            var objJson = JSON.stringify(resultado.response.dslogin.dslogin.ttestado[0].pocestado);
+            console.log(loginUrl+"\n"+objJson);
+            
+            if(objJson=='"OK"'){                
+                console.log("Usuario con permiso de ingresar \n" + objJson);
+                sessionStorage.setItem("usuario",usuario);
+                afterLogin();
+            }else{
+                console.log("Usuario no puede ingresar \n" + objJson);
+                alert("No se puede ingresar \n "+objJson);
+            }
+        });
+    } else {
+        status.text("Oops! There is invalid data in the form.")
+            .removeClass("valid")
+            .addClass("invalid");
+    }
+}
+
 /*
  *  Permite que los datos del fomulario sean enviando cuando el usuario oprime la tecla "Enter"
  */
-
 function presionaEnter() {
     document.addEventListener('keyup', function(e) {
         e = e || window.event;
@@ -73,11 +67,7 @@ function presionaEnter() {
     }, false);
 }
 
-function afterAjax(objCargo,objResponse){    
-    if(objCargo == 0){
-        alert("Usuario  no registrado en el sistema")
-    }
-    else
-        alert("Aqui debo llamar al index")
-   }
+function afterLogin(){    
+    alert("Usuario logeado correctamente en el sistema \n Bienvenido "+sessionStorage.getItem("usuario"));    
+}
 
