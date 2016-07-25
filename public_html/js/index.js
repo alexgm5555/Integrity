@@ -1,3 +1,8 @@
+function imgDocumentos(){
+    alert("imgdocumentos");
+}
+
+
 /*------------------------------------------------------------------------
                         File        : BaseIntegrity(Index)
                             Author(s)   : Alex G.M. - Rodrigo
